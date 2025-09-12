@@ -49,3 +49,44 @@ body {
   overflow: auto;
   background: #111;
 }
+
+/* ScreenSelector inline layout */
+.cp-screen-selector {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.cp-field {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.cp-label {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.cp-select,
+.cp-input {
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #0f0f0f;
+  color: #fff;
+  padding: 0 8px;
+}
+
+.cp-button {
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #222;
+  color: #fff;
+  padding: 0 10px;
+  cursor: pointer;
+}
+.cp-button:hover {
+  border-color: #555;
+}

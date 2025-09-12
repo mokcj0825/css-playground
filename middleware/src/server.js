@@ -15,6 +15,18 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.post('/setScreenSize', (req, res) => {
+  const { width, height } = req.body ?? {};
+  const isValidNumber = (v) => typeof v === 'number' && Number.isFinite(v) && v > 0;
+  if (!isValidNumber(width) || !isValidNumber(height)) {
+    return res.status(400).json({ ok: false, error: 'Invalid width/height' });
+  }
+
+  const payload = { type: 'screenSize', width, height, at: Date.now() };
+  const delivered = broadcastJson(payload);
+  return res.json({ ok: true, delivered });
+});
+
 // Create HTTP server and attach WebSocket server on the same port
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });

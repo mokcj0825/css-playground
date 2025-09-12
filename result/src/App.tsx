@@ -1,19 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
-type Message = {
-  type: string
-  [key: string]: unknown
-}
+type ScreenSizeMessage = { type: 'screenSize'; width: number; height: number }
 
-type ReceivedMessage = {
-  id: string
-  data: Message
+function isScreenSizeMessage(value: unknown): value is ScreenSizeMessage {
+  if (typeof value !== 'object' || value === null) return false
+  const maybe = value as { type?: unknown; width?: unknown; height?: unknown }
+  return (
+    maybe.type === 'screenSize' &&
+    typeof maybe.width === 'number' && Number.isFinite(maybe.width) && maybe.width > 0 &&
+    typeof maybe.height === 'number' && Number.isFinite(maybe.height) && maybe.height > 0
+  )
 }
 
 function App() {
-  const [connected, setConnected] = useState(false)
-  const [messages, setMessages] = useState<ReceivedMessage[]>([])
+  const [screenSize, setScreenSize] = useState<{ width: number; height: number } | null>(null)
   const socketRef = useRef<WebSocket | null>(null)
 
   useEffect(() => {
@@ -21,17 +22,14 @@ function App() {
     const ws = new WebSocket(`${protocol}://localhost:4000`)
     socketRef.current = ws
 
-    ws.onopen = () => setConnected(true)
-    ws.onclose = () => setConnected(false)
-    ws.onerror = () => setConnected(false)
     ws.onmessage = (event) => {
-      const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`
       try {
-        const data: Message = JSON.parse(event.data)
-        setMessages((prev) => [{ id: makeId(), data }, ...prev].slice(0, 50))
+        const parsed: unknown = JSON.parse(event.data)
+        if (isScreenSizeMessage(parsed)) {
+          setScreenSize({ width: parsed.width, height: parsed.height })
+        }
       } catch {
-        const data: Message = { type: 'raw', value: String(event.data) }
-        setMessages((prev) => [{ id: makeId(), data }, ...prev].slice(0, 50))
+        // ignore non-JSON
       }
     }
 
@@ -40,25 +38,13 @@ function App() {
     }
   }, [])
 
-  const sendPing = () => {
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify({ type: 'ping', at: Date.now() }))
-    }
-  }
+  const style: React.CSSProperties | undefined = screenSize
+    ? { width: `${screenSize.width}px`, height: `${screenSize.height}px` }
+    : undefined
 
   return (
-    <div className="ws-container">
-      <div className="ws-header">
-        <span>Status: {connected ? 'connected' : 'disconnected'}</span>
-        <button disabled={!connected} onClick={sendPing}>Send ping</button>
-      </div>
-      <ul className="ws-feed">
-        {messages.map((m) => (
-          <li key={m.id}>
-            <code>{JSON.stringify(m.data)}</code>
-          </li>
-        ))}
-      </ul>
+    <div className="viewport-stage">
+      {screenSize && <div className="viewport-box" style={style} />}
     </div>
   )
 }
