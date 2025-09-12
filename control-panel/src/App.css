@@ -1,0 +1,51 @@
+/* Control Panel layout styles */
+:root {
+  --cp-header-height: 56px;
+  --cp-sidebar-width: 280px;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+.cp-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--cp-header-height);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid #333;
+  background: #1e1e1e;
+  z-index: 10;
+}
+
+.cp-left {
+  position: fixed;
+  top: var(--cp-header-height);
+  bottom: 0;
+  left: 0;
+  width: var(--cp-sidebar-width);
+  border-right: 1px solid #333;
+  padding: 12px;
+  overflow: auto;
+  background: #111;
+}
+
+.cp-right {
+  position: fixed;
+  top: var(--cp-header-height);
+  bottom: 0;
+  right: 0;
+  width: var(--cp-sidebar-width);
+  border-left: 1px solid #333;
+  padding: 12px;
+  overflow: auto;
+  background: #111;
+}
