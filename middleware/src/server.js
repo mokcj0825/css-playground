@@ -27,6 +27,51 @@ app.post('/setScreenSize', (req, res) => {
   return res.json({ ok: true, delivered });
 });
 
+// New endpoints for document and action updates
+app.post('/updateDocument', (req, res) => {
+  const document = req.body;
+  console.log('=== MIDDLEWARE: Received document update ===');
+  console.log('Document:', JSON.stringify(document, null, 2));
+  
+  const payload = { 
+    type: 'documentUpdate', 
+    document, 
+    at: Date.now() 
+  };
+  
+  console.log('Broadcasting payload:', JSON.stringify(payload, null, 2));
+  const delivered = broadcastJson(payload);
+  console.log(`Broadcasted to ${delivered} clients`);
+  
+  return res.json({ ok: true, delivered });
+});
+
+app.post('/updateAction', (req, res) => {
+  const action = req.body;
+  console.log('Received action update:', action);
+  
+  const payload = { 
+    type: 'actionUpdate', 
+    action, 
+    at: Date.now() 
+  };
+  const delivered = broadcastJson(payload);
+  return res.json({ ok: true, delivered });
+});
+
+app.post('/updateActions', (req, res) => {
+  const { actions } = req.body;
+  console.log('Received actions update:', actions);
+  
+  const payload = { 
+    type: 'actionsUpdate', 
+    actions, 
+    at: Date.now() 
+  };
+  const delivered = broadcastJson(payload);
+  return res.json({ ok: true, delivered });
+});
+
 // Create HTTP server and attach WebSocket server on the same port
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
@@ -44,16 +89,22 @@ function broadcastJson(payload) {
 }
 
 wss.on('connection', (socket, req) => {
+  console.log('New WebSocket connection established');
   socket.send(JSON.stringify({ type: 'welcome', message: 'Connected to middleware' }));
 
   socket.on('message', (raw) => {
     // Echo back for basic verification
     try {
       const msg = typeof raw === 'string' ? raw : raw.toString('utf-8');
+      console.log('Received WebSocket message:', msg);
       socket.send(JSON.stringify({ type: 'echo', message: msg }));
     } catch {
       // ignore malformed
     }
+  });
+
+  socket.on('close', () => {
+    console.log('WebSocket connection closed');
   });
 });
 
