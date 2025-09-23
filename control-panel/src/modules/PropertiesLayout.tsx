@@ -31,6 +31,7 @@ interface PropertiesLayoutProps {
 
 export default function PropertiesLayout({ selectedElement, onPropertyChange, onElementUpdate }: PropertiesLayoutProps) {
   const [cssProperties, setCssProperties] = useState<Record<string, string>>({})
+  const [displayValues, setDisplayValues] = useState<Record<string, string>>({})
   const [activeGroup, setActiveGroup] = useState<string>('layout')
 
   const propertyGroups: CSSPropertyGroup[] = [
@@ -103,30 +104,49 @@ export default function PropertiesLayout({ selectedElement, onPropertyChange, on
       // For now, we'll start with empty properties
       // In a real app, this would come from the element's current CSS
       setCssProperties({})
+      setDisplayValues({})
     } else {
       console.log('Properties Layout: No element selected')
       setCssProperties({})
+      setDisplayValues({})
     }
   }, [selectedElement])
 
   const handlePropertyChange = async (propertyName: string, value: string) => {
     console.log('Properties Layout: handlePropertyChange called:', { propertyName, value, selectedElement })
-    
-    // Add units for numeric values if they don't have units
+
+    // For display purposes, keep the raw value (without units) for numeric inputs
+    // For processed value, add units when appropriate
     let processedValue = value
+    let displayValue = value
+
     if (propertyName === 'width' || propertyName === 'height' || propertyName === 'margin' || propertyName === 'padding') {
-      if (value && !isNaN(Number(value)) && !value.includes('px') && !value.includes('%') && !value.includes('em') && !value.includes('rem')) {
-        processedValue = value + 'px'
+      // Check if the value is purely numeric (for adding units)
+      const numericValue = parseFloat(value)
+      if (!isNaN(numericValue) && value.trim() !== '' && !value.includes('auto')) {
+        // This is a numeric value, add px for processing but keep raw value for display
+        processedValue = numericValue + 'px'
+        displayValue = value // Keep the raw number for display
+      } else {
+        // This contains units or is 'auto', use as-is for both
+        processedValue = value
+        displayValue = value
       }
     }
-    
+
     const updatedCss = {
       ...cssProperties,
       [propertyName]: processedValue
     }
-    
-    console.log('Properties Layout: Processed value:', processedValue, 'Updated CSS:', updatedCss)
+
+    const updatedDisplayValues = {
+      ...displayValues,
+      [propertyName]: displayValue
+    }
+
+    console.log('Properties Layout: Processed value:', processedValue, 'Display value:', displayValue, 'Updated CSS:', updatedCss)
     setCssProperties(updatedCss)
+    setDisplayValues(updatedDisplayValues)
     
     if (selectedElement) {
       console.log('Properties Layout: Selected element exists, processing update')
@@ -156,7 +176,7 @@ export default function PropertiesLayout({ selectedElement, onPropertyChange, on
   }
 
   const renderPropertyInput = (property: CSSProperty) => {
-    const currentValue = cssProperties[property.name] || property.value
+    const currentValue = displayValues[property.name] || cssProperties[property.name] || property.value
 
     switch (property.type) {
       case 'select':

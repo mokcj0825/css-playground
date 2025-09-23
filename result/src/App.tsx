@@ -122,20 +122,19 @@ function App() {
     }
   }, [])
 
-  const containerStyle: React.CSSProperties = {
-    width: screenSize ? `${screenSize.width}px` : '100%',
-    height: screenSize ? `${screenSize.height}px` : '100vh',
-    minHeight: '200px',
-    border: '1px solid #ccc',
-    margin: '20px auto',
-    padding: '20px',
-    backgroundColor: '#fff',
-    overflow: 'auto'
-  }
-
   return (
     <div className="result-app">
-      <div className="result-container" style={containerStyle}>
+      <div
+        className="result-container"
+        style={screenSize ? {
+          width: `${screenSize.width}px`,
+          height: `${screenSize.height}px`,
+          maxWidth: '100vw',
+          maxHeight: '100vh',
+          margin: '0 auto',
+          overflow: 'auto'
+        } : {}}
+      >
         {document && document.elements.length > 0 ? (
           <>
             {console.log('Result App: Rendering elements:', document.elements)}
